@@ -55,7 +55,7 @@ def scrape_wikipedia_results(first_name, last_name):
 
 # function to collect UFC fighter data from the SportsData API
 def fetch_fighter_data(first_name, last_name):
-    api_key = 'REPLACE WITH KEY PROVIDED IN LYTESPACE LATER'
+    api_key = 'REPLACE WITH KEY PROVIDED IN LYTESPACE'
     url = 'https://api.sportsdata.io/v3/mma/scores/json/Fighters'
     headers = {'Ocp-Apim-Subscription-Key': api_key}
 
