@@ -4,17 +4,15 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 
-# function to scrape fight odds using Selenium
+# Function to scrape fight odds using Selenium since BeautifulSoup doesn't work for BestFightOdds
 def scrape_fight_odds(url):
-    driver = webdriver.Chrome() 
+    driver = webdriver.Chrome()
     driver.get(url)
     
-    # wait for the page to fully load
     time.sleep(5)
     
     # get the page source after it's fully rendered
     soup = BeautifulSoup(driver.page_source, 'html.parser')
-    
     odds_list = []
     span_id_prefix = 'oID'
     span_id_number = 0
@@ -27,7 +25,7 @@ def scrape_fight_odds(url):
         if odds_span:
             odds = odds_span.get_text(strip=True)
             odds_list.append(odds)
-            span_id_number += 6  # move to the next span (increment by 6)
+            span_id_number += 6  # move to the next span (increment by 6 according to my findings)
         else:
             break 
     
@@ -35,76 +33,78 @@ def scrape_fight_odds(url):
     return odds_list
 
 # function to scrape win/loss data from Wikipedia
-def scrape_wikipedia_results(url):
-    headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"}
-    response = requests.get(url, headers=headers)
+def scrape_wikipedia_results(first_name, last_name):
+    wiki_url = f"https://en.wikipedia.org/wiki/{first_name}_{last_name}"
+    headers = {'User-Agent': "Mozilla/5.0"}
+    response = requests.get(wiki_url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     
     results_list = []
     
     # extract win/loss data from the Wikipedia table
     for row in soup.find_all('tr'):
-        result = row.find('td', class_='table-yes2')  # Win case
+        result = row.find('td', class_='table-yes2')
         if result:
             results_list.append('Win')
         else:
-            result = row.find('td', class_='table-no2')  # Loss case
+            result = row.find('td', class_='table-no2') 
             if result:
                 results_list.append('Loss')
     
     return results_list
 
-# function to fetch Max Holloway data from the API
-def fetch_max_holloway_data():
-    api_key = 'REPLACE WITH KEY LATER'
+# function to collect UFC fighter data from the SportsData API
+def fetch_fighter_data(first_name, last_name):
+    api_key = 'f26e1da77b4843bd9c340e539f55be4f'
     url = 'https://api.sportsdata.io/v3/mma/scores/json/Fighters'
-    headers = {
-        'Ocp-Apim-Subscription-Key': api_key
-    }
+    headers = {'Ocp-Apim-Subscription-Key': api_key}
 
     response = requests.get(url, headers=headers)
-
-    # check if the request was successful
     if response.status_code == 200:
         fighters_data = response.json()
+        fighter_data = next((fighter for fighter in fighters_data if fighter['FirstName'].lower() == first_name.lower() and fighter['LastName'].lower() == last_name.lower()), None)
 
-        # search for Max Holloway by comparing FirstName and LastName
-        max_holloway_data = next((fighter for fighter in fighters_data if fighter['FirstName'].lower() == 'max' and fighter['LastName'].lower() == 'holloway'), None)
-
-        if max_holloway_data:
-            return max_holloway_data
+        if fighter_data:
+            return fighter_data
         else:
-            print("Max Holloway not found.")
+            print(f"Fighter {first_name} {last_name} not found.")
             return None
     else:
         print(f"Failed to retrieve data: {response.status_code}")
         return None
 
-# URLs I used for scraping
-odds_url = "https://www.bestfightodds.com/fighters/Max-Holloway-3090"
-wiki_url = "https://en.wikipedia.org/wiki/Max_Holloway"
+# the MAIN function
+def collect_fighter_data():
+    first_name = input("Enter the fighter's first name: ")
+    last_name = input("Enter the fighter's last name: ")
+    odds_url = input("Enter the BestFightOdds URL for the fighter: ")
 
-fight_odds = scrape_fight_odds(odds_url)
-fight_results = scrape_wikipedia_results(wiki_url)
-max_holloway_data = fetch_max_holloway_data()
+    fight_odds = scrape_fight_odds(odds_url)
+    fight_results = scrape_wikipedia_results(first_name, last_name)
+    fighter_data = fetch_fighter_data(first_name, last_name)
 
-#combine the fight odds, win/loss results, and fighter profile into a DataFrame
-df = pd.DataFrame({
-    'Fight Odds': fight_odds,
-    'Result': fight_results[:len(fight_odds)],
-})
+    # combine the fight odds, win/loss results, and fighter profile into a DataFrame
+    df = pd.DataFrame({
+        'Fight Odds': fight_odds,
+        'Result': fight_results[:len(fight_odds)],
+    })
 
-if max_holloway_data:
-    df['Height'] = max_holloway_data.get('Height', 'N/A')
-    df['Weight'] = max_holloway_data.get('Weight', 'N/A')
-    df['Reach'] = max_holloway_data.get('Reach', 'N/A')
-    df['Wins'] = max_holloway_data.get('Wins', 'N/A')
-    df['Losses'] = max_holloway_data.get('Losses', 'N/A')
+    if fighter_data:
+        df['Height'] = fighter_data.get('Height', 'N/A')
+        df['Weight'] = fighter_data.get('Weight', 'N/A')
+        df['Reach'] = fighter_data.get('Reach', 'N/A')
+        df['Wins'] = fighter_data.get('Wins', 'N/A')
+        df['Losses'] = fighter_data.get('Losses', 'N/A')
 
-df['Wins'] = pd.to_numeric(df['Wins'], errors='coerce').fillna(0).astype(int)
-df['Losses'] = pd.to_numeric(df['Losses'], errors='coerce').fillna(0).astype(int)
+    # clean the data
+    df['Wins'] = pd.to_numeric(df['Wins'], errors='coerce').fillna(0).astype(int)
+    df['Losses'] = pd.to_numeric(df['Losses'], errors='coerce').fillna(0).astype(int)
 
-# export the cleaned dataset to a CSV file
-df.to_csv('max_holloway_fight_data.csv', index=False)
+    # export the cleaned dataset to a CSV file
+    output_file = f'{first_name}_{last_name}_fight_data.csv'
+    df.to_csv(output_file, index=False)
+    print(f"Data exported to {output_file}")
+    print(df)
 
-print(df)
+
+collect_fighter_data()
