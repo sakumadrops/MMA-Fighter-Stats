@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 
-# Function to scrape fight odds using Selenium since BeautifulSoup doesn't work for BestFightOdds
+# function to scrape fight odds using Selenium's Webdriver since BeautifulSoup doesn't work for BestFightOdds
 def scrape_fight_odds(url):
     driver = webdriver.Chrome()
     driver.get(url)
