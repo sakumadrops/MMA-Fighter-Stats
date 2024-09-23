@@ -12,11 +12,13 @@ Watching the UFC, Bellator, ONE Chamionship, or any other MMA promotion is a lot
 - Exports the cleaned data into a CSV file for easy access.
 
 # Packages and Libraries used
-- BeautifulSoup4: Used for parsing and navigating the HTML content of Wikipedia and BestFightOdds pages.
-- Pandas: For creating, cleaning, and manipulating the DataFrame that holds the fighter data.
-- Selenium: This is for dynamically loading content from BestFightOdds.
+- BeautifulSoup4 - https://pypi.org/project/beautifulsoup4/
+- Selenium Webdriver - https://www.selenium.dev/documentation/webdriver/
+- Pandas - https://pandas.pydata.org/
+- Python built-in libraries: requests, time, datetime, re, random
+- SportsData API - https://sportsdata.io/developers/api-documentation/mma
 - Requests: To make API calls to the SportsData API and fetch fighter profiles.
-- Python built-in libraries: Includes time for pauses during scraping and requests for HTTP requests.
+
 
 # Instructions:
 
