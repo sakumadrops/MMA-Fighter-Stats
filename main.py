@@ -101,4 +101,10 @@ if max_holloway_data:
     df['Wins'] = max_holloway_data.get('Wins', 'N/A')
     df['Losses'] = max_holloway_data.get('Losses', 'N/A')
 
+df['Wins'] = pd.to_numeric(df['Wins'], errors='coerce').fillna(0).astype(int)
+df['Losses'] = pd.to_numeric(df['Losses'], errors='coerce').fillna(0).astype(int)
+
+# export the cleaned dataset to a CSV file
+df.to_csv('max_holloway_fight_data.csv', index=False)
+
 print(df)
