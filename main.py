@@ -56,7 +56,7 @@ def scrape_wikipedia_results(url):
 
 # function to fetch Max Holloway data from the API
 def fetch_max_holloway_data():
-    api_key = 'f26e1da77b4843bd9c340e539f55be4f'
+    api_key = 'REPLACE WITH KEY LATER'
     url = 'https://api.sportsdata.io/v3/mma/scores/json/Fighters'
     headers = {
         'Ocp-Apim-Subscription-Key': api_key
